@@ -3,33 +3,25 @@ const mongoose= require("mongoose");
 const advSchema=mongoose.Schema({
     name:{
         type:String,
-       
         required:true,
-       
     },
     bcNo:{
         type:String,
-      
         required:true,
-       
     },
     bcState:{
         type:String,
-      
         required:true,
-       
     },
     contact:{
-        type:String,
+        type:Number,
         
         required:true,
-       
     },
     email:{
         type:String,
         unique:true,
         required:true,
-       
         dropDups: true
     },
   
@@ -41,7 +33,6 @@ const advSchema=mongoose.Schema({
     gender:{
         type:String,
         required:true
-
     },
     address:{
         type:String,
@@ -58,7 +49,7 @@ const advSchema=mongoose.Schema({
         required:true
 
     },qualification:{
-        type:Number,
+        type:String,
         required:true
 
     },
@@ -67,8 +58,8 @@ const advSchema=mongoose.Schema({
         required:true
 
     },
-    professionalExperience:{
-        type:String,
+    profilePic:{
+        type:Object,
         required:true
 
     },
@@ -87,8 +78,12 @@ const advSchema=mongoose.Schema({
         required:true
     },
     isActive:{
-        type:String,
-        default:'pending'
+        type:Boolean,
+        default:true
+    },
+    adminApproved:{
+        type:Boolean,
+        default:false
     }
 });
 module.exports=mongoose.model('advocates',advSchema)

@@ -3,7 +3,6 @@ const url = require('../url')
 const multer = require('multer')
 const jwt = require('jsonwebtoken');
 const advocateSchema = require('../Advocates/advocateSchema');
-const juniors = require('../JuniorAdvocate/junioradvocateSchema');
 
 const secret="user"
 

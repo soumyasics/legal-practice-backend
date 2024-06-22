@@ -17,8 +17,9 @@ const storage = multer.diskStorage({
     cb(null, filename);
   },
 });
-const upload = multer({ storage: storage }).single('idProof')
+const upload = multer({ storage: storage }).array("files", 2);
 
+const uploadProfile = multer({ storage: storage }).single('profilePic');
 
 // Register Advocate
 const registerAdvocate = async (req, res) => {
@@ -41,7 +42,8 @@ const registerAdvocate = async (req, res) => {
             professionalExperience,
             dateOfEnrollment,
             specialization,
-            idProof:req.file
+            idProof:req.files[1],
+            profilePic:req.files[0]
         });
 
         let existingAdvocate = await Advocate.findOne({ bcNo });
@@ -89,7 +91,7 @@ const registerAdvocate = async (req, res) => {
 
 // View all advocates
 const viewAdvocates = (req, res) => {
-    Advocate.find({isActive:'active'})
+    Advocate.find({adminApproved:true})
         .exec()
         .then(data => {
             if (data.length > 0) {
@@ -114,10 +116,9 @@ const viewAdvocates = (req, res) => {
         });
 };
 
-
 // View all advocate Reqs
 const viewAdvocateReqs = (req, res) => {
-    Advocate.find({isActive:'pending'})
+    Advocate.find({adminApproved:false})
         .exec()
         .then(data => {
             if (data.length > 0) {
@@ -145,7 +146,63 @@ const viewAdvocateReqs = (req, res) => {
 
 // approve Advocate
 const approveAdvocateById = (req, res) => {
-    Advocate.findByIdAndUpdate({_id:req.params.id},{isActive:'active'})
+    Advocate.findByIdAndUpdate({_id:req.params.id},{adminApproved:true})
+        .exec()
+        .then(data => {
+            if (data.length > 0) {
+                res.json({
+                    status: 200,
+                    msg: "Data obtained successfully",
+                    data: data
+                });
+            } else {
+                res.json({
+                    status: 200,
+                    msg: "No Data obtained"
+                });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                status: 500,
+                msg: "Data not obtained",
+                Error: err
+            });
+        });
+};
+
+
+// approve Advocate
+const activateAdvocateById = (req, res) => {
+    Advocate.findByIdAndUpdate({_id:req.params.id},{isActive:true})
+        .exec()
+        .then(data => {
+            if (data.length > 0) {
+                res.json({
+                    status: 200,
+                    msg: "Data obtained successfully",
+                    data: data
+                });
+            } else {
+                res.json({
+                    status: 200,
+                    msg: "No Data obtained"
+                });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                status: 500,
+                msg: "Data not obtained",
+                Error: err
+            });
+        });
+};
+
+
+// approve Advocate
+const deactivateAdvocateById = (req, res) => {
+    Advocate.findByIdAndUpdate({_id:req.params.id},{isActive:false})
         .exec()
         .then(data => {
             if (data.length > 0) {
@@ -173,13 +230,13 @@ const approveAdvocateById = (req, res) => {
 
 // reject Advocate
 const rejectAdvocateById = (req, res) => {
-    Advocate.findByIdAndUpdate({_id:req.params.id},{isActive:'rejected'})
+    Advocate.findByIdAndDelete({_id:req.params.id})
         .exec()
         .then(data => {
             if (data.length > 0) {
                 res.json({
                     status: 200,
-                    msg: "Data obtained successfully",
+                    msg: "Data Removed successfully",
                     data: data
                 });
             } else {
@@ -201,7 +258,7 @@ const rejectAdvocateById = (req, res) => {
 // Update advocate by ID
 const editAdvocateById = async (req, res) => {
     const { name, bcNo, bcState, contact, email, password, gender, address, experience, nationality, qualification, dob, professionalExperience, dateOfEnrollment, specialization } = req.body;
-
+console.log("profilePic",req.body.filename);
     Advocate.findByIdAndUpdate({ _id: req.params.id }, {
         name,
         bcNo,
@@ -218,7 +275,7 @@ const editAdvocateById = async (req, res) => {
         professionalExperience,
         dateOfEnrollment,
         specialization,
-        idProof:req.file
+        profilePic:req.file
     })
         .exec()
         .then(data => {
@@ -357,6 +414,7 @@ const createToken = (user) => {
     return jwt.sign({ userId: user._id }, secret, { expiresIn: '1h' });
 };
 
+//advocate login
 const login = (req, res) => {
     const { email, password } = req.body;
 
@@ -369,7 +427,9 @@ const login = (req, res) => {
         if (user.password != password) {
             return res.json({ status: 405, msg: 'Password Mismatch !!' });
         }
-
+        if (user.adminApproved==false) {
+            return res.json({ status: 405, msg: 'Please get Approval From Admin!!' });
+        }
         const token = createToken(user);
 
         res.json({
@@ -414,5 +474,8 @@ module.exports = {
     upload,
     viewAdvocateReqs,
     approveAdvocateById,
-    rejectAdvocateById
+    rejectAdvocateById,
+    activateAdvocateById,
+    deactivateAdvocateById,
+    uploadProfile
 };
